@@ -1,5 +1,6 @@
 package com.example.apigateway.log;
 
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -15,7 +16,10 @@ public class LoggingFilter implements GlobalFilter  , Ordered  {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().value();
         System.out.println("Incoming request to: " + path);
-        return chain.filter(exchange);
+        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+            ServerHttpResponse response = exchange.getResponse();
+            response.getHeaders().add("X-System-Name", "Api-Gateway-System");
+        }));
     }
     @Override
     public int getOrder() {
